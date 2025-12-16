@@ -20,8 +20,11 @@ AUTH_DISABLED = os.getenv("AUTH_DISABLED", "false").lower() == "true"
 # false, cuando se necesita JWT, ya que se trabajará en producción (DIINF). Además hay que configurar el JWT
 #AUTH_DISABLED = os.getenv("AUTH_DISABLED", "false").lower() == "false" 
 
+AUTH_OPEN_ALL = os.getenv("AUTH_OPEN_ALL", "true").lower() == "true"
+
 bearer_scheme = HTTPBearer(auto_error=False)
 
+ROLE_ALL = ["player", "teacher", "researcher", "admin"]
 
 class CurrentUser(BaseModel):
     """
@@ -144,7 +147,7 @@ def require_roles(allowed_roles: List[str]):
 # Atajos de roles típicos
 require_admin = require_roles(["admin"])
 require_admin_or_researcher = require_roles(["admin", "researcher"])
-require_player_or_higher = require_roles(["player", "teacher", "researcher", "admin"])
+require_player_or_higher = require_roles(ROLE_ALL)
 
 
 def guard_player_access(

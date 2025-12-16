@@ -44,6 +44,7 @@ services:
       GIT_COMMIT: "diinf-deploy"
 
       # Seguridad (integrado con LSG-auth)
+      AUTH_OPEN_ALL: "true"
       AUTH_DISABLED: "false"
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
       AUTH_JWT_ALGORITHM: ${AUTH_JWT_ALGORITHM}

@@ -135,6 +135,8 @@ def export_points(
     - info básica de points_ledger
     - info de jugador (opcionalmente seudonimizada)
     - info de videojuego y point_dimension
+
+    Acceso: admin, researcher.
     """
     base = """
         SELECT
@@ -239,6 +241,8 @@ def export_sessions(
     - info de sesión (started_at, ended_at, duration_seconds)
     - info de videojuego
     - info de jugador (seudonimizada)
+
+    Acceso: admin, researcher.
     """
     base = """
         SELECT
@@ -337,6 +341,8 @@ def export_sensors(
     Nota ética:
     - Considera si quieres exportar `raw_payload` completo o solo métricas derivadas
       (según CEI / protocolo). Aquí lo incluimos tal cual existe en la tabla.
+
+    Acceso: admin, researcher.
     """
     base = """
         SELECT

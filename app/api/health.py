@@ -11,6 +11,8 @@ router = APIRouter(tags=["health"])
 def health_check():
     """
     Liveness básico: solo indica que la app está levantada.
+
+    Acceso: abierto a todos.
     """
     return {"status": "ok"}
 
@@ -21,6 +23,8 @@ def health_full(db: Session = Depends(get_db)):
     Readiness / health extendido:
     - Chequea conexión a la base de datos.
     - Verifica acceso a vistas críticas.
+
+    Acceso: admin, researcher.
     """
     checks = {}
 

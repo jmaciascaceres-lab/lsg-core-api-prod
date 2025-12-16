@@ -11,10 +11,12 @@ def get_meta_info():
     """
     Metadatos de la API y del entorno.
     Pensado para debugging / monitoreo.
+
+    Acceso: abierto a todos.
     """
-    api_version = os.getenv("API_VERSION", "1.0.2")
-    environment = os.getenv("APP_ENV", "local")
-    git_commit = os.getenv("GIT_COMMIT", "unknown")
+    api_version = os.getenv("API_VERSION", "1.0.0")
+    environment = os.getenv("APP_ENV", "production")
+    git_commit = os.getenv("GIT_COMMIT", "0174c59")
 
     return {
         "api_version": api_version,

@@ -55,6 +55,8 @@ def admin_points_consistency_check(
     4) Coherencia de redemption_event:
        - redemption_event vinculado a points_ledger existente
        - points_ledger.direction = 'DEBIT' y source_type = 'REDEMPTION'
+
+    Acceso: admin, researcher.
     """
     issues: Dict[str, Any] = {}
 

@@ -164,6 +164,11 @@ def _ensure_exists(db: Session, query: str, params: dict, not_found_msg: str):
 def admin_list_attributes(
     db: Session = Depends(get_db),
 ):
+    """
+    # 28. GET /attributes
+
+    Acceso: admin, researcher.
+    """
     rows = db.execute(
         text(
             """
@@ -190,6 +195,11 @@ def admin_get_attribute(
     attribute_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 29. GET /attributes/{attribute_id}
+
+    Acceso: admin, researcher.
+    """
     row = _ensure_exists(
         db,
         """
@@ -218,6 +228,11 @@ def admin_create_attribute(
     payload: AttributeCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 30. POST /attributes
+
+    Acceso: admin.
+    """
     try:
         result = db.execute(
             text(
@@ -251,6 +266,11 @@ def admin_update_attribute(
     payload: AttributeUpdate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 31. PUT /attributes/{attribute_id}
+
+    Acceso: admin.
+    """
     # Verificamos existencia
     _ensure_exists(
         db,
@@ -300,8 +320,9 @@ def admin_delete_attribute(
     db: Session = Depends(get_db),
 ):
     """
-    Intentamos borrar el atributo.
-    Si hay FKs que lo usan, MySQL lanzará error; lo propagamos como 409.
+    # 32. DELETE /attributes/{attribute_id}
+
+    Acceso: admin.
     """
     # Verificamos existencia
     _ensure_exists(
@@ -338,6 +359,11 @@ def admin_list_subattributes(
     attribute_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
+    """
+    # 33. GET /subattributes
+
+    Acceso: admin, researcher.
+    """
     base = """
         SELECT
           id_subattributes,
@@ -365,6 +391,11 @@ def admin_get_subattribute(
     sub_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 34. GET /subattributes/{sub_id}
+
+    Acceso: admin, researcher.
+    """
     row = _ensure_exists(
         db,
         """
@@ -393,6 +424,11 @@ def admin_create_subattribute(
     payload: SubattributeCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 35. POST /subattributes
+
+    Acceso: admin.
+    """
     # Aseguramos que el atributo exista
     _ensure_exists(
         db,
@@ -444,6 +480,11 @@ def admin_update_subattribute(
     payload: SubattributeUpdate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 36. PUT /subattributes/{sub_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_subattributes FROM subattributes WHERE id_subattributes = :id",
@@ -502,6 +543,11 @@ def admin_delete_subattribute(
     sub_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 37. DELETE /subattributes/{sub_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_subattributes FROM subattributes WHERE id_subattributes = :id",
@@ -534,6 +580,11 @@ def admin_delete_subattribute(
 def admin_list_point_dimensions(
     db: Session = Depends(get_db),
 ):
+    """
+    # 38. GET /point-dimensions
+
+    Acceso: admin, researcher.
+    """
     rows = db.execute(
         text(
             """
@@ -559,6 +610,11 @@ def admin_get_point_dimension(
     pd_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 39. GET /point-dimensions/{pd_id}
+
+    Acceso: admin, researcher.
+    """
     row = _ensure_exists(
         db,
         """
@@ -586,6 +642,11 @@ def admin_create_point_dimension(
     payload: PointDimensionCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 40. POST /point-dimensions
+
+    Acceso: admin.
+    """
     # Validamos FKs si se entregan
     if payload.id_attributes is not None:
         _ensure_exists(
@@ -647,6 +708,11 @@ def admin_update_point_dimension(
     payload: PointDimensionUpdate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 41. PUT /point-dimensions/{pd_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_point_dimension FROM point_dimension WHERE id_point_dimension = :id",
@@ -719,6 +785,11 @@ def admin_delete_point_dimension(
     pd_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 42. DELETE /point-dimensions/{pd_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_point_dimension FROM point_dimension WHERE id_point_dimension = :id",
@@ -751,6 +822,11 @@ def admin_delete_point_dimension(
 def admin_list_mod_mechanics(
     db: Session = Depends(get_db),
 ):
+    """
+    # 43. GET /modifiable-mechanics
+
+    Acceso: admin, researcher.
+    """
     rows = db.execute(
         text(
             """
@@ -775,6 +851,11 @@ def admin_get_mod_mechanic(
     mm_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 44. GET /modifiable-mechanics/{mm_id}
+
+    Acceso: admin, researcher.
+    """
     row = _ensure_exists(
         db,
         """
@@ -801,6 +882,11 @@ def admin_create_mod_mechanic(
     payload: ModifiableMechanicCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 45. POST /modifiable-mechanics
+
+    Acceso: admin.
+    """
     try:
         result = db.execute(
             text(
@@ -836,6 +922,11 @@ def admin_update_mod_mechanic(
     payload: ModifiableMechanicUpdate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 46. PUT /modifiable-mechanics/{mm_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_modifiable_mechanic FROM modifiable_mechanic WHERE id_modifiable_mechanic = :id",
@@ -889,6 +980,11 @@ def admin_delete_mod_mechanic(
     mm_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 47. DELETE /modifiable-mechanics/{mm_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_modifiable_mechanic FROM modifiable_mechanic WHERE id_modifiable_mechanic = :id",
@@ -924,6 +1020,11 @@ def admin_list_mod_mech_vg(
     videogame_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
+    """
+    # 48. GET /modifiable-mechanics-videogames
+
+    Acceso: admin, researcher.
+    """
     base = """
         SELECT
           mmv.id_modifiable_mechanic_videogame,
@@ -953,6 +1054,11 @@ def admin_get_mod_mech_vg(
     mmv_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 49. GET /modifiable-mechanics-videogames/{mmv_id}
+
+    Acceso: admin, researcher.
+    """
     row = _ensure_exists(
         db,
         """
@@ -983,6 +1089,11 @@ def admin_create_mod_mech_vg(
     payload: ModifiableMechanicVGCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 50. POST /modifiable-mechanics-videogames
+
+    Acceso: admin.
+    """
     import json
 
     # Validamos FKs
@@ -1042,6 +1153,11 @@ def admin_update_mod_mech_vg(
     payload: ModifiableMechanicVGUpdate,
     db: Session = Depends(get_db),
 ):
+    """
+    # 51. PUT /modifiable-mechanics-videogames/{mmv_id}
+
+    Acceso: admin.
+    """
     import json
 
     _ensure_exists(
@@ -1109,6 +1225,11 @@ def admin_delete_mod_mech_vg(
     mmv_id: int,
     db: Session = Depends(get_db),
 ):
+    """
+    # 52. DELETE /modifiable-mechanics-videogames/{mmv_id}
+
+    Acceso: admin.
+    """
     _ensure_exists(
         db,
         "SELECT id_modifiable_mechanic_videogame FROM modifiable_mechanic_videogames WHERE id_modifiable_mechanic_videogame = :id",

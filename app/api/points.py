@@ -36,6 +36,8 @@ def list_attributes(
 ):
     """
     # 6. GET /attributes
+
+    Acceso: abierto a todos.
     """
     rows = db.execute(
         text(
@@ -57,6 +59,8 @@ def list_subattributes(
 ):
     """
     # 7. GET /attributes/{attribute_id}/subattributes
+
+    Acceso: abierto a todos.
     """
     rows = db.execute(
         text(
@@ -85,6 +89,8 @@ def get_attributes_map(
     """
     # 8. GET /attributes-map
     Usa la función sp_get_att_subattributes_name() que retorna JSON.
+
+    Acceso: abierto a todos.
     """
     row = db.execute(
         text("SELECT sp_get_att_subattributes_name() AS data")
@@ -104,6 +110,8 @@ def get_player_points_balance(
     """
     # 9. GET /players/{player_id}/points/balance
     Lee desde v_points_balance.
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(
@@ -131,6 +139,8 @@ def get_player_attribute_points(
     """
     # 10. GET /players/{player_id}/attributes/points
     Usa la vista v_player_attribute_balance.
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(
@@ -167,6 +177,8 @@ def get_points_ledger(
     """
     # 11. GET /points/ledger
     Consulta filtrable del ledger de puntos.
+
+    Acceso: admin, researcher, teacher, player.
     """
     base = """
         SELECT
@@ -222,6 +234,8 @@ def adjust_player_points(
     """
     # 12. POST /players/{player_id}/points/adjust
     Inserta un ajuste manual en points_ledger (source_type='ADJUST').
+
+    Acceso: admin, researcher.
     """
     from uuid import uuid4
     import json

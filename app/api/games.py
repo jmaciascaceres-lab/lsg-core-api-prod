@@ -47,6 +47,8 @@ def _get_player_dimension_balance(
     """
     Obtiene el balance actual de puntos para un jugador y una dimensión
     desde v_points_balance. Si no existe fila, se asume 0.
+
+    Acceso: abierto a todos.
     """
     row = db.execute(
         text(
@@ -75,6 +77,8 @@ def list_videogames(
 ):
     """
     # 13. GET /videogames
+
+    Acceso: abierto a todos.
     """
     rows = db.execute(
         text(
@@ -105,6 +109,8 @@ def get_videogame(
 ):
     """
     # 14. GET /videogames/{game_id}
+
+    Acceso: abierto a todos.
     """
     row = db.execute(
         text(
@@ -141,6 +147,8 @@ def get_videogame_mechanics(
     """
     # 15. GET /videogames/{game_id}/mechanics
     Combina modifiable_mechanic_videogames + modifiable_mechanic.
+
+    Acceso: abierto a todos.
     """
     rows = db.execute(
         text(
@@ -180,6 +188,8 @@ def preview_redeem_mechanic(
     - No realiza modificaciones.
     - Indica si el jugador tiene saldo suficiente
       y cuál sería el saldo resultante.
+
+    Acceso: abierto a todos.
     """
     current_balance = _get_player_dimension_balance(
         db=db,
@@ -215,6 +225,8 @@ def redeem_mechanic(
       - Si no hay saldo suficiente -> 400 con detalle.
       - Si hay saldo, registra DEBIT en points_ledger (REDEMPTION)
         y crea el registro en redemption_event.
+
+    Acceso: abierto a todos.
     """
     from uuid import uuid4
     import json
@@ -333,6 +345,8 @@ def _get_or_create_player_videogame(
 ) -> int:
     """
     Ayudante: obtiene id_player_videogame o lo crea.
+
+    Acceso: abierto a todos.
     """
     import json
 
@@ -392,6 +406,8 @@ def start_session(
     """
     # 17. POST /videogames/{game_id}/players/{player_id}/sessions
     Inicia sesión LSG (lsg_game_session).
+
+    Acceso: abierto a todos.
     """
     import json
 
@@ -449,6 +465,8 @@ def end_session(
     """
     # 18. PATCH /videogames/{game_id}/players/{player_id}/sessions/{session_id}/end
     Cierra la sesión de juego.
+
+    Acceso: abierto a todos.
     """
     ended_at = payload.ended_at or datetime.utcnow()
 

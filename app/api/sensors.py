@@ -40,6 +40,8 @@ def list_sensors(
 ):
     """
     # 19. GET /sensors
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(
@@ -67,6 +69,8 @@ def list_sensor_endpoints(
 ):
     """
     # 20. GET /sensors/{sensor_id}/endpoints
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(
@@ -100,6 +104,8 @@ def get_player_sensors(
     """
     # 21. GET /sensors/players/{player_id}
     Sensores y endpoints asociados a un jugador.
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(
@@ -145,6 +151,8 @@ def ingest_sensor_event(
     """
     # 22. POST /sensors/ingest/webhook
     MVP: inserta en sensor_ingest_event (sin lógica de conversión a puntos aún).
+
+    Acceso: admin, researcher.
     """
     import json
 
@@ -204,6 +212,8 @@ def list_player_ingest_events(
 ):
     """
     # 23. GET /sensors/players/{player_id}/ingest-events
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(

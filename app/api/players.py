@@ -27,6 +27,8 @@ def list_players(
     """
     # 1. GET /players
     Lista jugadores con paginación.
+
+    Acceso: admin, researcher, teacher.
     """
     offset = (page - 1) * page_size
 
@@ -63,6 +65,8 @@ def get_player(
     """
     # 2. GET /players/{player_id}
     Detalle de un jugador.
+
+    Acceso: admin, researcher, teacher, player.
     """
     row = db.execute(
         text(
@@ -90,6 +94,8 @@ def delete_player(
     """
     # 3. DELETE /players/{player_id}
     Llama a sp_delete_player_cascade para borrar en cascada.
+
+    Acceso: admin.
     """
     try:
         db.execute(text("CALL sp_delete_player_cascade(:p_id)"), {"p_id": player_id})
@@ -110,6 +116,8 @@ def init_player_attributes(
     """
     # 4. POST /players/{player_id}/attributes/init
     Inicializa players_attributes para este jugador.
+
+    Acceso: admin, researcher.
     """
     try:
         db.execute(
@@ -135,6 +143,8 @@ def get_player_games(
     """
     # 5. GET /players/{player_id}/games
     Usa la vista v_player_game_overview.
+
+    Acceso: admin, researcher, teacher, player.
     """
     rows = db.execute(
         text(
@@ -178,6 +188,8 @@ def get_player_timeline(
     - points_ledger
     - sensor_ingest
     - redemption
+
+    Acceso: admin, researcher, teacher, player.
     """
     params_base = {"pid": player_id}
     if from_ts is not None:

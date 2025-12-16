@@ -1,5 +1,9 @@
 version: "3.9"
 
+networks:
+  lsg_shared:
+     external: true
+
 services:
   db:
     image: mysql:8.0
@@ -19,6 +23,8 @@ services:
     command: >
       --default-authentication-plugin=mysql_native_password
       --sql-mode="STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    networks:
+      - lsg_shared
 
   api:
     build: .
@@ -43,7 +49,9 @@ services:
       AUTH_JWT_ALGORITHM: ${AUTH_JWT_ALGORITHM}
       AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER}
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE}
-
+  
+    env_file:
+      - .env
     # En prod no montamos el código del host como volumen
     # (evitamos cambios accidentales en caliente)
     # volumes:
@@ -52,6 +60,8 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "${API_PORT:-8012}:8000"
+    networks:
+      - lsg_shared
 
 volumes:
   db_data:

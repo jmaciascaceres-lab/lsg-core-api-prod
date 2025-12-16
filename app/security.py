@@ -94,7 +94,24 @@ def get_current_user(
         )
 
     role = payload.get("role", "player")
-    player_id = payload.get("player_id") or payload.get("id_players")
+
+    # Normalizamos player_id a int + fallback desde sub
+    player_id_raw = payload.get("player_id") or payload.get("id_players")
+    player_id: Optional[int] = None
+
+    if player_id_raw is not None:
+       try:
+           player_id = int(player_id_raw)
+       except (TypeError, ValueError):
+           raise HTTPException(
+               status_code=status.HTTP_401_UNAUTHORIZED,
+               detail="Invalid token: 'player_id' must be an integer",
+        )
+    else:
+       # Fallback: tokens antiguos que sólo traen sub
+       if sub.isdigit():
+           player_id = int(sub)
+
     email = payload.get("email")
     token_type = payload.get("type", "user")
 
@@ -127,7 +144,7 @@ def require_roles(allowed_roles: List[str]):
 # Atajos de roles típicos
 require_admin = require_roles(["admin"])
 require_admin_or_researcher = require_roles(["admin", "researcher"])
-require_teacher_or_higher = require_roles(["teacher", "researcher", "admin"])
+require_player_or_higher = require_roles(["player", "teacher", "researcher", "admin"])
 
 
 def guard_player_access(
@@ -136,12 +153,12 @@ def guard_player_access(
 ) -> CurrentUser:
     """
     Permite acceso si:
-    - el usuario es admin/researcher/teacher, o
+    - el usuario es admin/researcher/teacher/player, o
     - el usuario corresponde al mismo player_id (jugador viendo sus propios datos).
 
     Útil en endpoints tipo /players/{player_id}/...
     """
-    if current_user.role in ("admin", "researcher", "teacher"):
+    if current_user.role in ("admin", "researcher", "teacher", "player"):
         return current_user
 
     if current_user.player_id is not None and current_user.player_id == player_id:

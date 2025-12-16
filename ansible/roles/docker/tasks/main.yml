@@ -66,7 +66,8 @@
     state: present
     update_cache: true
   become: true
-  when: not compose_check.stat.exists
+  #when: not compose_check.stat.exists
+  when: false
 
 # Agregar usuario al grupo docker para ejecutar comandos sin sudo
 - name: Agregar usuario actual al grupo docker

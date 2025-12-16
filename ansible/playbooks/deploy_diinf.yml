@@ -34,10 +34,10 @@
     # Definición de servicios (Modificar según tus servicios)
     services:
       - name: "lsg-core-api"                                              # Nombre interno del servicio
-        type: "api"                                                       # Tipo: api o frontend
+        type: "backend"                                                       # Tipo: api o frontend
         #image: "lsg-core-api"                                            # Imagen Docker del servicio (solo cuando clone_repos = false)
         #tag: "latest"                                                    # Tag de la imagen (solo cuando clone_repos = false)
-        port: "{{ lookup('env', 'API_PORT') | default(8012) | int }}"     # Puerto en el host
+        port: "{{ lookup('env', 'API_PORT') | default(0) | int }}"        # Puerto en el host
         api_prefix: "lsg-core-api"                                        # Prefijo para la ruta de API en Nginx
       
       #- name: "gm"
@@ -117,7 +117,7 @@
     - docker
     - { role: ssl, when: "enable_ssl | bool" }
     - nginx
-    - provision
+#    - provision
 
 # INSTRUCCIONES:
 # 0. REQUISITOS:

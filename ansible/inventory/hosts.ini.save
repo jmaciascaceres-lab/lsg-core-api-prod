@@ -3,10 +3,8 @@
 ; Descripción: Define los hosts donde se desplegará la aplicación
 ; =====================================
 
-; Host local
-[local]
-#localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
-localhost ansible_connection=local
+; Host loca[local]
+localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
 
 #[lsg_core_api]
 #lsg.diinf.usach.cl ansible_user=DIINF\\usuario ansible_ssh_private_key_file=~/.ssh/id_rsa

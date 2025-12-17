@@ -2,7 +2,12 @@ import os
 from fastapi import APIRouter, Depends
 
 from app.db import DB_HOST, DB_NAME
-from app.security import require_roles, guard_player_access, ROLE_ALL
+from app.security import (
+    require_roles,
+    guard_player_access,
+    CurrentUser,
+    ROLE_ALL,
+)
 
 router = APIRouter(tags=["meta"])
 

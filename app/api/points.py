@@ -10,9 +10,9 @@ from app.db import get_db
 from app.security import (
     require_roles,
     guard_player_access,
+    CurrentUser,
     ROLE_ALL,
 )
-
 router = APIRouter()
 
 

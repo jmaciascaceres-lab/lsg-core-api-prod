@@ -112,4 +112,5 @@ Notas:
 
 ### 8. Fuente
 
-González-Ibáñez, R., Macías-Cáceres, J., Villalta-Paucar, M. (2025). LifeSync-Games: Toward a Video Game Paradigm for Promoting Responsible Gaming and Human Development. arXiv preprint: 2510.19691 [cs.HC], 2025. DOI:https://arxiv.org/abs/2510.19691
+González-Ibáñez, R., Macías-Cáceres, J., Villalta-Paucar, M. (2025). LifeSync-Games: Toward a Video Game Paradigm for Promoting Responsible Gaming and Human Development. arXiv preprint: 2510.19691 [cs.HC], 2025. DOI: https://arxiv.org/abs/2510.19691
+

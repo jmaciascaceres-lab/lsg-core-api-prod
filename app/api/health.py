@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.security import require_roles, ROLE_ALL
+from app.security import require_roles, guard_player_access, ROLE_ALL
 from app.db import get_db
 
 router = APIRouter(tags=["health"])

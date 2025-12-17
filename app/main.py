@@ -5,11 +5,28 @@ from app.api import health, analytics, players, points, games, sensors, meta, ad
 
 ROOT_PATH = os.getenv("LSG_CORE_API_ROOT_PATH", "")
 
+CORE_DOCS_DESCRIPTION = """
+## Flujo de uso (Token → Core API)
+
+1. **Obtén un token en LSG-auth**:
+   - Swagger Auth: `/lsg-auth/docs`
+   - `POST /login` → copia `access_token`
+
+2. **Autoriza en este Swagger**:
+   - Botón **Authorize**
+   - Pega: `Bearer <access_token>`
+
+3. **Usa los endpoints según tu necesidad**.
+
+"""
+
 app = FastAPI(
     title="LifeSync-Games Core API",
-    version="1.0.0",
+    version="1.0.1",
     root_path=ROOT_PATH,
+    description=CORE_DOCS_DESCRIPTION,
 )
+
 
 # Routers
 app.include_router(health.router)

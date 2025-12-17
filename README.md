@@ -37,25 +37,25 @@ lsg-core-api-prod/
 
 ## Uso del servicio (Producción)
 
-### 1. Requisitos
+### 1. Características
 
 - Docker + Docker Compose
 - Red docker externa `lsg_shared` (la usan `lsg-auth` y `lsg-core-api`)
 
-Crear red si no existe:
+Se utiliza una red compartida:
 ```bash
 docker network create lsg_shared
 ```
 
 ### 2. Variables de entorno
 
-Configura .env (ejemplo):
+Configuración del archivo .env:
 - DB_NAME
 - DB_USER
 - DB_PASSWORD
 - API_PORT=8012
 
-JWT (debe coincidir con lsg-auth):
+JWT:
 - AUTH_JWT_SECRET
 - AUTH_JWT_ALGORITHM=HS256
 - AUTH_JWT_ISSUER=lsg-auth
@@ -109,8 +109,6 @@ Notas:
 - /analytics/...
 - /admin/...
 - /research/export/...
-
-Más información desde: https://lsg.diinf.usach.cl/lsg-core-api/docs
 
 ### 8. Fuente
 

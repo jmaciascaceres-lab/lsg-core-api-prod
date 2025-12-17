@@ -9,10 +9,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 
 from app.security import (
-    CurrentUser,
-    guard_player_access,
     require_roles,
-    get_current_user,
     ROLE_ALL,
 )
 
@@ -72,10 +69,9 @@ def _get_player_dimension_balance(
 
 # ---------- Videogames ----------
 
-@router.get("")
+@router.get("", dependencies=[require_roles(ROLE_ALL)])
 def list_videogames(
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(ROLE_ALL)),
 ):
     """
     # 13. GET /videogames
@@ -103,11 +99,10 @@ def list_videogames(
     return list(rows)
 
 
-@router.get("/{game_id}")
+@router.get("/{game_id}", dependencies=[require_roles(ROLE_ALL)])
 def get_videogame(
     game_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(get_current_user),
 ):
     """
     # 14. GET /videogames/{game_id}
@@ -140,11 +135,10 @@ def get_videogame(
     return dict(row)
 
 
-@router.get("/{game_id}/mechanics")
+@router.get("/{game_id}/mechanics", dependencies=[require_roles(ROLE_ALL)])
 def get_videogame_mechanics(
     game_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(get_current_user),
 ):
     """
     # 15. GET /videogames/{game_id}/mechanics
@@ -177,13 +171,11 @@ def get_videogame_mechanics(
 
 # ---------- Redemptions ----------
 
-@router.post("/{game_id}/players/{player_id}/redeem/preview")
+@router.post("/{game_id}/players/{player_id}/redeem/preview", dependencies=[guard_player_access])
 def preview_redeem_mechanic(
-    game_id: int,
     player_id: int,
     payload: RedeemRequest,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     Preview de canje:
@@ -213,13 +205,11 @@ def preview_redeem_mechanic(
     }
 
 
-@router.post("/{game_id}/players/{player_id}/redeem")
+@router.post("/{game_id}/players/{player_id}/redeem", dependencies=[guard_player_access])
 def redeem_mechanic(
-    game_id: int,
     player_id: int,
     payload: RedeemRequest,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     Canje robusto:
@@ -398,13 +388,11 @@ def _get_or_create_player_videogame(
     return result.lastrowid
 
 
-@router.post("/{game_id}/players/{player_id}/sessions")
+@router.post("/{game_id}/players/{player_id}/sessions", dependencies=[guard_player_access])
 def start_session(
-    game_id: int,
     player_id: int,
     payload: SessionStartRequest,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 17. POST /videogames/{game_id}/players/{player_id}/sessions
@@ -456,14 +444,12 @@ def start_session(
     return {"status": "started", "id_session": session_id}
 
 
-@router.patch("/{game_id}/players/{player_id}/sessions/{session_id}/end")
+@router.patch("/{game_id}/players/{player_id}/sessions/{session_id}/end", dependencies=[guard_player_access])
 def end_session(
-    game_id: int,
     player_id: int,
     session_id: int,
     payload: SessionEndRequest,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 18. PATCH /videogames/{game_id}/players/{player_id}/sessions/{session_id}/end

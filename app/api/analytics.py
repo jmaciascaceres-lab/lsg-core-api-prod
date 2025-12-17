@@ -5,15 +5,14 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.security import CurrentUser, require_roles
-
+from app.security import require_roles
+    
 router = APIRouter()
 
 
-@router.get("/points-balance")
+@router.get("/points-balance", dependencies=[require_roles(["admin", "researcher"])])
 def get_points_balance(
     player_id: Optional[int] = Query(None),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
     db: Session = Depends(get_db),
 ):
     """
@@ -34,11 +33,10 @@ def get_points_balance(
     return {"items": rows}
 
 
-@router.get("/player-game-overview")
+@router.get("/player-game-overview", dependencies=[require_roles(["admin", "researcher"])])
 def get_player_game_overview(
     player_id: Optional[int] = Query(None),
     videogame_id: Optional[int] = Query(None),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
     db: Session = Depends(get_db),
 ):
     """
@@ -75,11 +73,10 @@ def get_player_game_overview(
     return list(rows)
 
 
-@router.get("/player-attribute-balance")
+@router.get("/player-attribute-balance", dependencies=[require_roles(["admin", "researcher"])])
 def get_player_attribute_balance(
     player_id: Optional[int] = Query(None),
     attribute_id: Optional[int] = Query(None),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
     db: Session = Depends(get_db),
 ):
     """
@@ -117,9 +114,8 @@ def get_player_attribute_balance(
     return list(rows)
 
 
-@router.get("/games/time-to-first-redeem")
+@router.get("/games/time-to-first-redeem", dependencies=[require_roles(["admin", "researcher"])] )  
 def get_time_to_first_redeem(
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
     db: Session = Depends(get_db),
 ):
     """
@@ -168,9 +164,8 @@ def get_time_to_first_redeem(
 # ---------- Data quality & sensores ----------
 
 
-@router.get("/sensors/quality")
+@router.get("/sensors/quality", dependencies=[require_roles(["admin", "researcher"])] )
 def get_sensors_quality(
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
     player_id: Optional[int] = Query(
         None, description="Filtra por id_players (opcional)"
     ),
@@ -271,7 +266,7 @@ def get_sensors_quality(
     return result
 
 
-@router.get("/sensors/ingest-vs-points")
+@router.get("/sensors/ingest-vs-points", dependencies=[require_roles(["admin", "researcher"])] )
 def get_sensors_ingest_vs_points(
     player_id: Optional[int] = Query(
         None, description="Filtra por id_players (opcional)"
@@ -285,7 +280,6 @@ def get_sensors_ingest_vs_points(
     to_ts: Optional[str] = Query(
         None, description="YYYY-MM-DD HH:MM:SS (fin ventana tiempo, opcional)"
     ),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
     db: Session = Depends(get_db),
 ):
     """

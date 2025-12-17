@@ -132,7 +132,7 @@ def get_current_user(
 
 def require_roles(allowed_roles: List[str]):
     def dependency(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
-        # Modo “todo abierto” (útil para dejar operativo y luego endurecer)
+        # Modo "open" (útil para Fase 1)
         if AUTH_OPEN_ALL:
             return current_user
 
@@ -142,8 +142,8 @@ def require_roles(allowed_roles: List[str]):
                 detail=f"Insufficient permissions (required roles: {allowed_roles})",
             )
         return current_user
-    return dependency
 
+    return dependency
 
 
 # Atajos de roles típicos
@@ -157,17 +157,18 @@ def guard_player_access(
     player_id: int,
     current_user: CurrentUser = Depends(get_current_user),
 ) -> CurrentUser:
-    # Modo abierto: todo pasa
+    # Modo "open" (Fase 1)
     if AUTH_OPEN_ALL:
         return current_user
 
-    # Roles elevados: pueden ver a cualquiera
+    # Roles elevados pueden acceder a cualquier player
     if current_user.role in ("admin", "researcher", "teacher"):
         return current_user
 
-    # Player: solo su propio player_id
-    if current_user.role == "player" and current_user.player_id == player_id:
-        return current_user
+    # Player solo puede acceder a sí mismo
+    if current_user.role == "player":
+        if current_user.player_id is not None and current_user.player_id == player_id:
+            return current_user
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

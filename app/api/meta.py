@@ -2,15 +2,13 @@ import os
 from fastapi import APIRouter, Depends
 
 from app.db import DB_HOST, DB_NAME
-from app.security import CurrentUser, require_roles, ROLE_ALL
+from app.security import require_roles, ROLE_ALL
 
 router = APIRouter(tags=["meta"])
 
 
-@router.get("/info")
-def get_meta_info(
-    _: CurrentUser = Depends(require_roles(ROLE_ALL)),
-):
+@router.get("/info", dependencies=[require_roles(ROLE_ALL)])
+def get_meta_info():
     """
     Metadatos de la API y del entorno.
     Pensado para debugging / monitoreo.

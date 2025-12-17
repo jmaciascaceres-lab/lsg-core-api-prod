@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 
 from app.security import (
-    CurrentUser,
     guard_player_access,
     require_roles,      
 )
@@ -16,12 +15,11 @@ from app.security import (
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", dependencies=[require_roles(["admin", "researcher", "teacher"])])
 def list_players(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher", "teacher"])),
 ):
     """
     # 1. GET /players
@@ -55,11 +53,10 @@ def list_players(
     }
 
 
-@router.get("/{player_id}")
+@router.get("/{player_id}", dependencies=[guard_player_access])
 def get_player(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 2. GET /players/{player_id}
@@ -84,11 +81,10 @@ def get_player(
     return dict(row)
 
 
-@router.delete("/{player_id}")
+@router.delete("/{player_id}", dependencies=[require_roles(["admin"])])
 def delete_player(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin"])),
 ):
     """
     # 3. DELETE /players/{player_id}
@@ -106,17 +102,16 @@ def delete_player(
     return {"status": "deleted", "id_players": player_id}
 
 
-@router.post("/{player_id}/attributes/init")
+@router.post("/{player_id}/attributes/init", dependencies=[require_roles(["admin", "teacher", "researcher"])])
 def init_player_attributes(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
 ):
     """
     # 4. POST /players/{player_id}/attributes/init
     Inicializa players_attributes para este jugador.
 
-    Acceso: admin, researcher.
+    Acceso: admin, teacher, researcher.
     """
     try:
         db.execute(
@@ -133,11 +128,10 @@ def init_player_attributes(
     return {"status": "initialized", "id_players": player_id}
 
 
-@router.get("/{player_id}/games")
+@router.get("/{player_id}/games", dependencies=[guard_player_access])
 def get_player_games(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 5. GET /players/{player_id}/games
@@ -166,7 +160,7 @@ def get_player_games(
     return list(rows)
 
 
-@router.get("/{player_id}/timeline")
+@router.get("/{player_id}/timeline", dependencies=[guard_player_access])
 def get_player_timeline(
     player_id: int,
     from_ts: Optional[str] = Query(
@@ -177,7 +171,6 @@ def get_player_timeline(
     ),
     limit: int = Query(200, ge=10, le=1000),
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     Timeline unificado del jugador (sesiones, puntos, sensores, canjes).

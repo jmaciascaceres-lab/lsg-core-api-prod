@@ -8,10 +8,8 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 
 from app.security import (
-    CurrentUser,
-    get_current_user,
     require_roles,
-    guard_player_access,
+    ROLE_ALL,
 )
 
 router = APIRouter()
@@ -29,10 +27,9 @@ class PointsAdjustRequest(BaseModel):
 
 # ---------- Attributes & Subattributes ----------
 
-@router.get("/attributes", tags=["attributes"])
+@router.get("/attributes", tags=["attributes"], dependencies=[require_roles(ROLE_ALL)])
 def list_attributes(
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(get_current_user),
 ):
     """
     # 6. GET /attributes
@@ -51,11 +48,10 @@ def list_attributes(
     return list(rows)
 
 
-@router.get("/attributes/{attribute_id}/subattributes", tags=["attributes"])
+@router.get("/attributes/{attribute_id}/subattributes", tags=["attributes"], dependencies=[require_roles(ROLE_ALL)])
 def list_subattributes(
     attribute_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(get_current_user),
 ):
     """
     # 7. GET /attributes/{attribute_id}/subattributes
@@ -81,10 +77,9 @@ def list_subattributes(
     return list(rows)
 
 
-@router.get("/attributes-map", tags=["attributes"])
+@router.get("/attributes-map", tags=["attributes"], dependencies=[require_roles(ROLE_ALL)])
 def get_attributes_map(
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(get_current_user),
 ):
     """
     # 8. GET /attributes-map
@@ -101,11 +96,10 @@ def get_attributes_map(
 
 # ---------- Points & Balances ----------
 
-@router.get("/players/{player_id}/points/balance", tags=["points"])
+@router.get("/players/{player_id}/points/balance", tags=["points"], dependencies=[guard_player_access])
 def get_player_points_balance(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 9. GET /players/{player_id}/points/balance
@@ -130,11 +124,10 @@ def get_player_points_balance(
     return list(rows)
 
 
-@router.get("/players/{player_id}/attributes/points", tags=["points"])
+@router.get("/players/{player_id}/attributes/points", tags=["points"], dependencies=[guard_player_access])
 def get_player_attribute_points(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 10. GET /players/{player_id}/attributes/points
@@ -164,7 +157,7 @@ def get_player_attribute_points(
     return list(rows)
 
 
-@router.get("/points/ledger", tags=["points"])
+@router.get("/points/ledger", tags=["points"], dependencies=[require_roles(ROLE_ALL)])
 def get_points_ledger(
     player_id: Optional[int] = Query(None),
     videogame_id: Optional[int] = Query(None),
@@ -172,7 +165,6 @@ def get_points_ledger(
     from_ts: Optional[str] = Query(None, description="YYYY-MM-DD HH:MM:SS"),
     to_ts: Optional[str] = Query(None, description="YYYY-MM-DD HH:MM:SS"),
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher", "teacher", "player"])),
 ):
     """
     # 11. GET /points/ledger
@@ -224,12 +216,11 @@ def get_points_ledger(
     return list(rows)
 
 
-@router.post("/players/{player_id}/points/adjust", tags=["points"])
+@router.post("/players/{player_id}/points/adjust", tags=["points"], dependencies=[require_roles(["admin", "researcher"])])
 def adjust_player_points(
     player_id: int,
     payload: PointsAdjustRequest,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
 ):
     """
     # 12. POST /players/{player_id}/points/adjust

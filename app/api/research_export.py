@@ -13,7 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.security import CurrentUser, require_roles
+from app.security import require_roles
 
 router = APIRouter(prefix="/research/export", tags=["research-export"])
 
@@ -97,7 +97,7 @@ def _build_csv_response(rows: List[Dict[str, Any]], filename: str) -> Response:
 # 1) Export: Points ledger
 # =========================
 
-@router.get("/points")
+@router.get("/points", dependencies=[require_roles(ROLE_ALL)])
 def export_points(
     from_ts: Optional[Annotated[datetime, BeforeValidator(decode_ts)]] = Query(
         None, description="YYYY-MM-DD HH:MM:SS (inicio ventana tiempo, opcional)"
@@ -207,7 +207,7 @@ def export_points(
 # 2) Export: Game sessions
 # =========================
 
-@router.get("/sessions")
+@router.get("/sessions", dependencies=[require_roles(["admin", "researcher"])])
 def export_sessions(
     from_ts: Optional[Annotated[datetime, BeforeValidator(decode_ts)]] = Query(
         None, description="YYYY-MM-DD HH:MM:SS (inicio ventana tiempo, opcional)"
@@ -232,7 +232,6 @@ def export_sessions(
         None, ge=1, le=100000, description="Límite máximo de filas (opcional)"
     ),
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
 ):
     """
     Exporta sesiones de juego (lsg_game_session + player_videogame + videogame + players).
@@ -304,7 +303,7 @@ def export_sessions(
 # 3) Export: Sensor ingest
 # =========================
 
-@router.get("/sensors")
+@router.get("/sensors", dependencies=[require_roles(["admin", "researcher"])])
 def export_sensors(
     from_ts: Optional[Annotated[datetime, BeforeValidator(decode_ts)]] = Query(
         None, description="YYYY-MM-DD HH:MM:SS (inicio ventana tiempo, opcional)"
@@ -329,7 +328,6 @@ def export_sensors(
         None, ge=1, le=100000, description="Límite máximo de filas (opcional)"
     ),
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(["admin", "researcher"])),
 ):
     """
     Exporta eventos de sensor (sensor_ingest_event) con contexto:

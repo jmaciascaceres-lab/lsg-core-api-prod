@@ -9,11 +9,8 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 
 from app.security import (
-    CurrentUser,
-    get_current_user,
     require_roles,
     ROLE_ALL,   
-    guard_player_access,
 )
 
 router = APIRouter()
@@ -34,10 +31,9 @@ class SensorIngestRequest(BaseModel):
 
 # ---------- Sensors ----------
 
-@router.get("")
+@router.get("", dependencies=[require_roles(ROLE_ALL)])
 def list_sensors(
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(ROLE_ALL)),
 ):
     """
     # 19. GET /sensors
@@ -62,11 +58,10 @@ def list_sensors(
     return list(rows)
 
 
-@router.get("/{sensor_id}/endpoints")
+@router.get("/{sensor_id}/endpoints", dependencies=[require_roles(ROLE_ALL)])
 def list_sensor_endpoints(
     sensor_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(require_roles(ROLE_ALL)),
 ):
     """
     # 20. GET /sensors/{sensor_id}/endpoints
@@ -96,11 +91,10 @@ def list_sensor_endpoints(
     return list(rows)
 
 
-@router.get("/players/{player_id}")
+@router.get("/players/{player_id}", dependencies=[require_roles(guard_player_access)])
 def get_player_sensors(
     player_id: int,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 21. GET /sensors/players/{player_id}
@@ -143,11 +137,10 @@ def get_player_sensors(
     return list(rows)
 
 
-@router.post("/ingest/webhook")
+@router.post("/ingest/webhook", dependencies=[require_roles(ROLE_ALL)])
 def ingest_sensor_event(
     payload: SensorIngestRequest,
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(get_current_user),
 ):
     """
     # 22. POST /sensors/ingest/webhook
@@ -204,12 +197,11 @@ def ingest_sensor_event(
     return {"status": "ok", "id_sensor_ingest_event": sie_id}
 
 
-@router.get("/players/{player_id}/ingest-events")
+@router.get("/players/{player_id}/ingest-events", dependencies=[require_roles(guard_player_access)])
 def list_player_ingest_events(
     player_id: int,
     limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
-    _: CurrentUser = Depends(guard_player_access),
 ):
     """
     # 23. GET /sensors/players/{player_id}/ingest-events

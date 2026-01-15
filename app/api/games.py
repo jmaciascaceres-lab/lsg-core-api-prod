@@ -307,6 +307,7 @@ def get_videogame_mechanics(
 
 @router.post("/{game_id}/players/{player_id}/redeem/preview", dependencies=[Depends(guard_player_access)])
 def preview_redeem_mechanic(
+    game_id: int,
     player_id: int,
     payload: RedeemRequest,
     db: Session = Depends(get_db),
@@ -341,6 +342,7 @@ def preview_redeem_mechanic(
 
 @router.post("/{game_id}/players/{player_id}/redeem", dependencies=[Depends(guard_player_access)])
 def redeem_mechanic(
+    game_id: int,
     player_id: int,
     payload: RedeemRequest,
     db: Session = Depends(get_db),

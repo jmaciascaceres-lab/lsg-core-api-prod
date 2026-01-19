@@ -40,33 +40,66 @@ class SessionEndRequest(BaseModel):
 
 # ---------- Helpers ----------
 
-def _get_player_dimension_balance(
+def _get_player_game_dimension_balance(
     db: Session,
     player_id: int,
+    game_id: int,
     point_dimension_id: int,
 ) -> int:
     """
-    Obtiene el balance actual de puntos para un jugador y una dimensión
-    desde v_points_balance. Si no existe fila, se asume 0.
+    Balance de puntos por jugador + juego + dimensión.
 
-    Acceso: abierto a todos.
+    Se calcula desde points_ledger para evitar balances cross-game.
     """
     row = db.execute(
         text(
             """
-            SELECT balance
-            FROM v_points_balance
+            SELECT COALESCE(SUM(
+              CASE
+                WHEN direction = 'CREDIT' THEN amount
+                WHEN direction = 'DEBIT'  THEN -amount
+                ELSE 0
+              END
+            ), 0) AS balance
+            FROM points_ledger
             WHERE id_players = :pid
+              AND id_videogame = :gid
               AND id_point_dimension = :pdid
             """
         ),
-        {"pid": player_id, "pdid": point_dimension_id},
+        {"pid": player_id, "gid": game_id, "pdid": point_dimension_id},
     ).mappings().first()
 
-    if not row or row["balance"] is None:
-        return 0
+    return int(row["balance"]) if row and row["balance"] is not None else 0
 
-    return int(row["balance"])
+
+def _assert_mmv_exists_for_game(db: Session, game_id: int, mmv_id: int) -> None:
+    """
+    Valida que el id_modifiable_mechanic_videogame exista y pertenezca al juego del path.
+    Evita IntegrityError por FK (redemption_event.fk_re_mmv).
+    """
+    row = db.execute(
+        text(
+            """
+            SELECT 1
+            FROM modifiable_mechanic_videogames
+            WHERE id_modifiable_mechanic_videogame = :mmv_id
+              AND id_videogame = :game_id
+            """
+        ),
+        {"mmv_id": mmv_id, "game_id": game_id},
+    ).mappings().first()
+
+    if not row:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "MODIFIABLE_MECHANIC_VIDEOGAME_NOT_FOUND",
+                "message": "No existe modifiable_mechanic_videogame_id para el game_id indicado.",
+                "game_id": game_id,
+                "modifiable_mechanic_videogame_id": mmv_id,
+            },
+        )
 
 
 # ---------- Videogames ----------
@@ -320,9 +353,12 @@ def preview_redeem_mechanic(
 
     Acceso: abierto a todos.
     """
-    current_balance = _get_player_dimension_balance(
+    _assert_mmv_exists_for_game(db, game_id, payload.modifiable_mechanic_videogame_id)
+
+    current_balance = _get_player_game_dimension_balance(
         db=db,
         player_id=player_id,
+        game_id=game_id,
         point_dimension_id=payload.point_dimension_id,
     )
 
@@ -337,6 +373,7 @@ def preview_redeem_mechanic(
         "game_id": game_id,
         "player_id": player_id,
         "point_dimension_id": payload.point_dimension_id,
+        "modifiable_mechanic_videogame_id": payload.modifiable_mechanic_videogame_id,
     }
 
 
@@ -349,7 +386,7 @@ def redeem_mechanic(
 ):
     """
     Canje robusto:
-      - Verifica saldo en v_points_balance.
+      - Verifica saldo por juego+dimensión (points_ledger).
       - Si no hay saldo suficiente -> 400 con detalle.
       - Si hay saldo, registra DEBIT en points_ledger (REDEMPTION)
         y crea el registro en redemption_event.
@@ -359,10 +396,13 @@ def redeem_mechanic(
     from uuid import uuid4
     import json
 
-    # 1) Obtener saldo actual
-    current_balance = _get_player_dimension_balance(
+    _assert_mmv_exists_for_game(db, game_id, payload.modifiable_mechanic_videogame_id)
+
+    # 1) Obtener saldo actual (por juego)
+    current_balance = _get_player_game_dimension_balance(
         db=db,
         player_id=player_id,
+        game_id=game_id,
         point_dimension_id=payload.point_dimension_id,
     )
 
@@ -374,6 +414,9 @@ def redeem_mechanic(
                 "message": "Saldo insuficiente para realizar el canje.",
                 "current_balance": current_balance,
                 "required_amount": payload.amount,
+                "game_id": game_id,
+                "player_id": player_id,
+                "point_dimension_id": payload.point_dimension_id,
             },
         )
 
@@ -440,7 +483,6 @@ def redeem_mechanic(
 
         db.commit()
 
-        # 4) Estimar nuevo balance (puedes volver a consultar la vista si quieres exactitud)
         resulting_balance = current_balance - payload.amount
 
     except HTTPException:
@@ -459,6 +501,7 @@ def redeem_mechanic(
         "game_id": game_id,
         "player_id": player_id,
         "point_dimension_id": payload.point_dimension_id,
+        "modifiable_mechanic_videogame_id": payload.modifiable_mechanic_videogame_id,
     }
 
 
@@ -526,6 +569,7 @@ def _get_or_create_player_videogame(
 
 @router.post("/{game_id}/players/{player_id}/sessions", dependencies=[Depends(guard_player_access)])
 def start_session(
+    game_id: int,
     player_id: int,
     payload: SessionStartRequest,
     db: Session = Depends(get_db),
@@ -582,6 +626,7 @@ def start_session(
 
 @router.patch("/{game_id}/players/{player_id}/sessions/{session_id}/end", dependencies=[Depends(guard_player_access)])
 def end_session(
+    game_id: int,
     player_id: int,
     session_id: int,
     payload: SessionEndRequest,

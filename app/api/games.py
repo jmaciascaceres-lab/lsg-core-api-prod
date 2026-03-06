@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 
@@ -48,36 +49,44 @@ class ModifiableMechanicVideogameCreateRequest(BaseModel):
     options: Optional[dict] = None
 
 
+class ConnectRequest(BaseModel):
+    lsg_enabled: Optional[bool] = True
+    plugin_version: Optional[str] = None
+    settings: Optional[dict] = None
+
+
 # ---------- Helpers ----------
 
-def _get_player_game_dimension_balance(
+def _get_player_global_dimension_balance(
     db: Session,
     player_id: int,
-    game_id: int,
     point_dimension_id: int,
+    for_update: bool = False,
 ) -> int:
     """
-    Balance de puntos por jugador + juego + dimensión.
+    Balance GLOBAL por jugador + dimensión.
+    Ignora id_videogame para permitir canje cross-game.
 
-    Se calcula desde points_ledger para evitar balances cross-game.
+    Si for_update=True: usa FOR UPDATE para evitar double-spend en redeem.
     """
+    sql = """
+        SELECT COALESCE(SUM(
+          CASE
+            WHEN direction = 'CREDIT' THEN amount
+            WHEN direction = 'DEBIT'  THEN -amount
+            ELSE 0
+          END
+        ), 0) AS balance
+        FROM points_ledger
+        WHERE id_players = :pid
+          AND id_point_dimension = :pdid
+    """
+    if for_update:
+        sql += " FOR UPDATE"
+
     row = db.execute(
-        text(
-            """
-            SELECT COALESCE(SUM(
-              CASE
-                WHEN direction = 'CREDIT' THEN amount
-                WHEN direction = 'DEBIT'  THEN -amount
-                ELSE 0
-              END
-            ), 0) AS balance
-            FROM points_ledger
-            WHERE id_players = :pid
-              AND id_videogame = :gid
-              AND id_point_dimension = :pdid
-            """
-        ),
-        {"pid": player_id, "gid": game_id, "pdid": point_dimension_id},
+        text(sql),
+        {"pid": player_id, "pdid": point_dimension_id},
     ).mappings().first()
 
     return int(row["balance"]) if row and row["balance"] is not None else 0
@@ -181,9 +190,6 @@ def get_videogame(
 
 
 # ---------- Models ----------
-
-from pydantic import BaseModel
-from typing import Optional
 
 
 class VideogameCreateRequest(BaseModel):
@@ -365,11 +371,11 @@ def preview_redeem_mechanic(
     """
     _assert_mmv_exists_for_game(db, game_id, payload.modifiable_mechanic_videogame_id)
 
-    current_balance = _get_player_game_dimension_balance(
+    current_balance = _get_player_global_dimension_balance(
         db=db,
         player_id=player_id,
-        game_id=game_id,
         point_dimension_id=payload.point_dimension_id,
+        for_update=False,
     )
 
     would_be_enough = current_balance >= payload.amount
@@ -409,11 +415,11 @@ def redeem_mechanic(
     _assert_mmv_exists_for_game(db, game_id, payload.modifiable_mechanic_videogame_id)
 
     # 1) Obtener saldo actual (por juego)
-    current_balance = _get_player_game_dimension_balance(
+    current_balance = _get_player_global_dimension_balance(
         db=db,
         player_id=player_id,
-        game_id=game_id,
         point_dimension_id=payload.point_dimension_id,
+        for_update=True,
     )
 
     if current_balance < payload.amount:
@@ -433,65 +439,68 @@ def redeem_mechanic(
     source_ref = f"REDEMPTION-{uuid4()}"
 
     try:
-        # 2) Registrar débito en points_ledger
-        result = db.execute(
-            text(
-                """
-                INSERT INTO points_ledger (
-                  id_players,
-                  id_point_dimension,
-                  id_videogame,
-                  direction,
-                  amount,
-                  source_type,
-                  source_ref,
-                  payload
-                ) VALUES (
-                  :id_players,
-                  :id_point_dimension,
-                  :id_videogame,
-                  'DEBIT',
-                  :amount,
-                  'REDEMPTION',
-                  :source_ref,
-                  :payload
-                )
-                """
-            ),
-            {
-                "id_players": player_id,
-                "id_point_dimension": payload.point_dimension_id,
-                "id_videogame": game_id,
-                "amount": payload.amount,
-                "source_ref": source_ref,
-                "payload": json.dumps(payload.metadata) if payload.metadata else None,
-            },
-        )
-        pl_id = result.lastrowid
+        # Inicia transacción explícita
+        with db.begin():
+            # 2) Registrar débito en points_ledger
+            result = db.execute(
+                text(
+                    """
+                    INSERT INTO points_ledger (
+                      id_players,
+                      id_point_dimension,
+                      id_videogame,
+                      direction,
+                      amount,
+                      source_type,
+                      source_ref,
+                      payload
+                    ) VALUES (
+                      :id_players,
+                      :id_point_dimension,
+                      :id_videogame,
+                      'DEBIT',
+                      :amount,
+                      'REDEMPTION',
+                      :source_ref,
+                      :payload
+                    )
+                    """
+                ),
+                {
+                    "id_players": player_id,
+                    "id_point_dimension": payload.point_dimension_id,
+                    "id_videogame": game_id,
+                    "amount": payload.amount,
+                    "source_ref": source_ref,
+                    "payload": json.dumps({
+                        "modifiable_mechanic_videogame_id": payload.modifiable_mechanic_videogame_id,
+                        "metadata": payload.metadata or {},
+                    }),
+                },
+            )
+            pl_id = result.lastrowid
 
-        # 3) Registrar en redemption_event
-        db.execute(
-            text(
-                """
-                INSERT INTO redemption_event (
-                  id_points_ledger,
-                  id_modifiable_mechanic_videogame,
-                  redeemed_points
-                ) VALUES (
-                  :pl_id,
-                  :mmv_id,
-                  :points
-                )
-                """
-            ),
-            {
-                "pl_id": pl_id,
-                "mmv_id": payload.modifiable_mechanic_videogame_id,
-                "points": payload.amount,
-            },
-        )
-
-        db.commit()
+            # 3) Registrar en redemption_event
+            db.execute(
+                text(
+                    """
+                    INSERT INTO redemption_event (
+                      id_points_ledger,
+                      id_modifiable_mechanic_videogame,
+                      redeemed_points
+                    ) VALUES (
+                      :pl_id,
+                      :mmv_id,
+                      :points
+                    )
+                    """
+                ),
+                {
+                    "pl_id": pl_id,
+                    "mmv_id": payload.modifiable_mechanic_videogame_id,
+                    "points": payload.amount,
+                },
+            )
 
         resulting_balance = current_balance - payload.amount
 
@@ -533,27 +542,40 @@ def _get_or_create_player_videogame(
     import json
 
     row = db.execute(
-        text(
-            """
+        text("""
             SELECT id_player_videogame
             FROM player_videogame
             WHERE id_players = :pid AND id_videogame = :gid
-            """
-        ),
+        """),
         {"pid": player_id, "gid": game_id},
     ).mappings().first()
 
     if row:
+        # heartbeat mínimo
+        db.execute(
+            text("""
+                UPDATE player_videogame
+                SET last_seen = NOW(),
+                    plugin_version = COALESCE(:plugin_version, plugin_version),
+                    settings = COALESCE(:settings, settings)
+                WHERE id_player_videogame = :pvg_id
+            """),
+            {
+                "pvg_id": row["id_player_videogame"],
+                "plugin_version": plugin_version,
+                "settings": json.dumps(settings) if settings else None,
+            },
+        )
         return row["id_player_videogame"]
 
     result = db.execute(
-        text(
-            """
+        text("""
             INSERT INTO player_videogame (
               id_players,
               id_videogame,
               lsg_enabled,
               first_seen,
+              last_seen,
               plugin_version,
               settings
             ) VALUES (
@@ -561,11 +583,11 @@ def _get_or_create_player_videogame(
               :gid,
               1,
               NOW(),
+              NOW(),
               :plugin_version,
               :settings
             )
-            """
-        ),
+        """),
         {
             "pid": player_id,
             "gid": game_id,
@@ -811,4 +833,80 @@ def attach_mechanic_to_videogame(
         "game_id": game_id,
         "id_modifiable_mechanic": payload.id_modifiable_mechanic,
         "options": payload.options,
+    }
+
+
+@router.post("/{game_id}/players/{player_id}/connect", dependencies=[Depends(guard_player_access)])
+def connect_player_videogame(
+    game_id: int,
+    player_id: int,
+    payload: ConnectRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    POST /videogames/{game_id}/players/{player_id}/connect
+
+    Upsert vínculo player<->videogame y actualiza heartbeat:
+    - lsg_enabled
+    - plugin_version
+    - settings
+    - first_seen (solo si es nuevo)
+    - last_seen (siempre)
+
+    Acceso: player dueño, admin, researcher, teacher.
+    """
+    import json
+
+    enabled_val = 1 if (payload.lsg_enabled is None or payload.lsg_enabled) else 0
+    settings_json = json.dumps(payload.settings) if payload.settings is not None else None
+
+    try:
+        # 1) Upsert con heartbeat
+        db.execute(
+            text(
+                """
+                INSERT INTO player_videogame (
+                  id_players,
+                  id_videogame,
+                  lsg_enabled,
+                  first_seen,
+                  last_seen,
+                  plugin_version,
+                  settings
+                ) VALUES (
+                  :pid,
+                  :gid,
+                  :enabled,
+                  NOW(),
+                  NOW(),
+                  :plugin_version,
+                  :settings
+                )
+                ON DUPLICATE KEY UPDATE
+                  lsg_enabled = VALUES(lsg_enabled),
+                  last_seen = NOW(),
+                  plugin_version = COALESCE(VALUES(plugin_version), plugin_version),
+                  settings = COALESCE(VALUES(settings), settings)
+                """
+            ),
+            {
+                "pid": player_id,
+                "gid": game_id,
+                "enabled": enabled_val,
+                "plugin_version": payload.plugin_version,
+                "settings": settings_json,
+            },
+        )
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error connecting player to videogame: {e}")
+
+    return {
+        "status": "ok",
+        "player_id": player_id,
+        "game_id": game_id,
+        "lsg_enabled": bool(enabled_val),
+        "plugin_version": payload.plugin_version,
     }

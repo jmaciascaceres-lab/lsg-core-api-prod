@@ -537,6 +537,7 @@ CREATE TABLE `players` (
   `name` varchar(50) NOT NULL,
   `password_hash` char(95) DEFAULT NULL,
   `email` varchar(128) NOT NULL,
+  `role` enum('player', 'teacher', 'researcher', 'admin') NOT NULL DEFAULT 'player',
   `age` int DEFAULT NULL,
   `external_type` varchar(16) DEFAULT NULL,
   `external_id` varchar(128) DEFAULT NULL,
@@ -554,7 +555,7 @@ CREATE TABLE `players` (
 
 LOCK TABLES `players` WRITE;
 /*!40000 ALTER TABLE `players` DISABLE KEYS */;
-INSERT INTO `players` VALUES (22,'aaldea','$2b$12$7XGc7hCL.QFeYFpUaTlsyejnydI5RZ.aetBojx.vLqBWx9eKVDOgi','alejandro.aldea@usach.cl',0,NULL,NULL,'2025-12-11 20:42:33','2025-12-11 20:42:33'),(24,'hherrera','$2b$12$ND2fcMCIKgsztTdoLM3lvukwXuMsvE7yg//M93iZsBogSgNhnbaNK','hernan.herrera@usach.cl',0,NULL,NULL,'2025-12-11 20:43:24','2025-12-11 20:43:24'),(25,'lmellado','$2b$12$v2LZnXLHSpyQnj1rLLP.3OefgDCdCgd3eH.LeDx0dmp6W0/PjOrl6','luis.mellado.v@usach.cl',0,NULL,NULL,'2025-12-11 20:44:02','2025-12-11 20:44:02'),(26,'jmacias','$2b$12$8qLpu/Oeb0c51.bGz4meteOwxQbinAyLBg7JSJPvnkWfRmf46y9mC','joaquin.macias@usach.cl',35,NULL,NULL,'2025-12-11 20:44:31','2025-12-11 20:44:31'),(27,'rgonzalez','$2b$12$wb.3ssYQQNxo8slkYT3j2.Yc4v3Q9PKZzr5Y3hV0hebpmhGLuTdme','roberto.gonzalez.i@usach.cl',0,NULL,NULL,'2025-12-11 20:44:59','2025-12-11 20:44:59'),(28,'wjimenez','$2b$12$yQ4W5OLZiU1TrGuFhIfjH.O9SnD8ujhEUAm932ri9TmCv9gAJgulq','williams.jimenez@usach.cl',0,NULL,NULL,'2025-12-11 20:45:26','2025-12-11 20:45:26'),(30,'acastro','$2b$12$jcjtEMMSOd19kM4Y2hEHrumg55LZ4smeLaPotjL.3jd7zzO84slSO','aracely.castro@usach.cl',0,NULL,NULL,'2025-12-11 20:46:01','2025-12-11 20:46:01'),(31,'ravaca','$2b$12$9E2qjhPik7BqcQSR.UW0meUJJHfb0ouIBuHL07FzbofPIgDeCom7W','ricardo.avaca@usach.cl',0,NULL,NULL,'2025-12-11 20:46:25','2025-12-11 20:46:25'),(32,'erodriguez','$2b$12$89KYMJ6mZLlwPFuKTc0bgOdQk/quNkpcfU5hYvPPt72wxkAnfUI4q','enrique.rodriguez-lapuente@usach.cl',0,NULL,NULL,'2025-12-11 20:46:47','2025-12-11 20:46:47'),(33,'ngabrielli','$2b$12$6VqoO4Hn7H5On1.YGlN/n.W3ycq/xA9/VY6kch41KXXVvx8DVQVaG','nicolas.gabrielli@usach.cl',0,NULL,NULL,'2025-12-11 20:47:16','2025-12-11 20:47:16');
+INSERT INTO `players` VALUES (22,'aaldea','$2b$12$7XGc7hCL.QFeYFpUaTlsyejnydI5RZ.aetBojx.vLqBWx9eKVDOgi','alejandro.aldea@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:42:33','2025-12-11 20:42:33'),(24,'hherrera','$2b$12$ND2fcMCIKgsztTdoLM3lvukwXuMsvE7yg//M93iZsBogSgNhnbaNK','hernan.herrera@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:43:24','2025-12-11 20:43:24'),(25,'lmellado','$2b$12$v2LZnXLHSpyQnj1rLLP.3OefgDCdCgd3eH.LeDx0dmp6W0/PjOrl6','luis.mellado.v@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:44:02','2025-12-11 20:44:02'),(26,'jmacias','$2b$12$8qLpu/Oeb0c51.bGz4meteOwxQbinAyLBg7JSJPvnkWfRmf46y9mC','joaquin.macias@usach.cl', 'admin',35,NULL,NULL,'2025-12-11 20:44:31','2025-12-11 20:44:31'),(27,'rgonzalez','$2b$12$wb.3ssYQQNxo8slkYT3j2.Yc4v3Q9PKZzr5Y3hV0hebpmhGLuTdme','roberto.gonzalez.i@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:44:59','2025-12-11 20:44:59'),(28,'wjimenez','$2b$12$yQ4W5OLZiU1TrGuFhIfjH.O9SnD8ujhEUAm932ri9TmCv9gAJgulq','williams.jimenez@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:45:26','2025-12-11 20:45:26'),(30,'acastro','$2b$12$jcjtEMMSOd19kM4Y2hEHrumg55LZ4smeLaPotjL.3jd7zzO84slSO','aracely.castro@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:46:01','2025-12-11 20:46:01'),(31,'ravaca','$2b$12$9E2qjhPik7BqcQSR.UW0meUJJHfb0ouIBuHL07FzbofPIgDeCom7W','ricardo.avaca@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:46:25','2025-12-11 20:46:25'),(32,'erodriguez','$2b$12$89KYMJ6mZLlwPFuKTc0bgOdQk/quNkpcfU5hYvPPt72wxkAnfUI4q','enrique.rodriguez-lapuente@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:46:47','2025-12-11 20:46:47'),(33,'ngabrielli','$2b$12$6VqoO4Hn7H5On1.YGlN/n.W3ycq/xA9/VY6kch41KXXVvx8DVQVaG','nicolas.gabrielli@usach.cl', 'player',0,NULL,NULL,'2025-12-11 20:47:16','2025-12-11 20:47:16');
 /*!40000 ALTER TABLE `players` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -810,8 +811,8 @@ DELIMITER ;;
 
   /* Determinar el atributo asociado a la dimensión de puntos */
   SELECT COALESCE(pd.id_attributes,
-                  (SELECT attributes_id_attributes 
-                     FROM subattributes 
+                  (SELECT attributes_id_attributes
+                     FROM subattributes
                     WHERE id_subattributes = pd.id_subattributes))
     INTO v_attr
   FROM point_dimension pd
@@ -822,14 +823,14 @@ DELIMITER ;;
     VALUES (
       NEW.id_players,
       v_attr,
-      CASE 
+      CASE
         WHEN NEW.direction = 'CREDIT' THEN NEW.amount
         ELSE -NEW.amount
       END,
       NOW()
     )
     ON DUPLICATE KEY UPDATE
-      data       = data + (CASE 
+      data       = data + (CASE
                               WHEN NEW.direction = 'CREDIT' THEN NEW.amount
                               ELSE -NEW.amount
                             END),
@@ -1192,7 +1193,7 @@ DROP TABLE IF EXISTS `v_game_usage_points`;
 /*!50001 DROP VIEW IF EXISTS `v_game_usage_points`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `v_game_usage_points` AS SELECT 
+/*!50001 CREATE VIEW `v_game_usage_points` AS SELECT
  1 AS `id_players`,
  1 AS `id_videogame`,
  1 AS `points_spent`,
@@ -1207,7 +1208,7 @@ DROP TABLE IF EXISTS `v_player_attribute_balance`;
 /*!50001 DROP VIEW IF EXISTS `v_player_attribute_balance`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `v_player_attribute_balance` AS SELECT 
+/*!50001 CREATE VIEW `v_player_attribute_balance` AS SELECT
  1 AS `id_players`,
  1 AS `player_name`,
  1 AS `player_email`,
@@ -1226,7 +1227,7 @@ DROP TABLE IF EXISTS `v_player_game_overview`;
 /*!50001 DROP VIEW IF EXISTS `v_player_game_overview`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `v_player_game_overview` AS SELECT 
+/*!50001 CREATE VIEW `v_player_game_overview` AS SELECT
  1 AS `id_players`,
  1 AS `player_name`,
  1 AS `player_email`,
@@ -1244,7 +1245,7 @@ DROP TABLE IF EXISTS `v_points_balance`;
 /*!50001 DROP VIEW IF EXISTS `v_points_balance`*/;
 SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
-/*!50001 CREATE VIEW `v_points_balance` AS SELECT 
+/*!50001 CREATE VIEW `v_points_balance` AS SELECT
  1 AS `id_players`,
  1 AS `id_point_dimension`,
  1 AS `balance`*/;
@@ -1499,7 +1500,7 @@ CREATE DEFINER=`root`@`%` PROCEDURE `sp_init_all_players_attributes`()
     MODIFIES SQL DATA
 BEGIN
   INSERT INTO players_attributes (id_players, id_attributes, data)
-  SELECT 
+  SELECT
     p.id_players,
     a.id_attributes,
     0 AS data
@@ -1531,7 +1532,7 @@ BEGIN
   /* Inserta filas en players_attributes para todos los attributes
      que aún no existen para este jugador, con data = 0 */
   INSERT INTO players_attributes (id_players, id_attributes, data)
-  SELECT 
+  SELECT
       p_id_players        AS id_players,
       a.id_attributes     AS id_attributes,
       0                   AS data

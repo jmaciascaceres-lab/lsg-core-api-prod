@@ -440,7 +440,7 @@ def redeem_mechanic(
 
     try:
         # Inicia transacción explícita
-        with db.begin():
+        with db.begin_nested():
             # 2) Registrar débito en points_ledger
             result = db.execute(
                 text(

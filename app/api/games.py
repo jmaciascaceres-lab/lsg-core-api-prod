@@ -504,6 +504,8 @@ def redeem_mechanic(
 
         resulting_balance = current_balance - payload.amount
 
+        db.commit()
+
     except HTTPException:
         raise
     except Exception as e:

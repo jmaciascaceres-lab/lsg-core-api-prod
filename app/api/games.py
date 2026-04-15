@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import Optional
 
@@ -349,7 +350,19 @@ def get_videogame_mechanics(
         {"game_id": game_id},
     ).mappings().all()
 
-    return list(rows)
+    result = []
+    for row in rows:
+        row_dict = dict(row)
+        if row_dict.get('options') and isinstance(row_dict['options'], str):
+            try:
+                row_dict['options'] = json.loads(row_dict['options'])
+            except json.JSONDecodeError:
+                pass
+        result.append(row_dict)
+
+
+    # return list(rows)
+    return result
 
 
 # ---------- Redemptions ----------

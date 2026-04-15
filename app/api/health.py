@@ -13,7 +13,8 @@ from app.db import get_db
 router = APIRouter(tags=["health"])
 
 
-@router.get("/health", dependencies=[Depends(require_roles(ROLE_ALL))])
+# @router.get("/health", dependencies=[Depends(require_roles(ROLE_ALL))])
+@router.get("/health")
 def health_check():
     """
     Liveness básico: solo indica que la app está levantada.
